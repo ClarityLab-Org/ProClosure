@@ -1,6 +1,6 @@
 ## Setup Guide
 
-**Step 1.** First, MASt3R-SLAM has to be set up. For that go to [https://github.com/rmurai0610/MASt3R-SLAM](https://github.com/rmurai0610/MASt3R-SLAM), OR for detailed instructions follow the `MASt3R_Setup.md` file (recommended).
+**Step 1.** First, MASt3R-SLAM has to be set up. For that go to [https://github.com/rmurai0610/MASt3R-SLAM](https://github.com/rmurai0610/MASt3R-SLAM), OR for detailed instructions follow the `MASt3R_SLAM_Setup.md` file (recommended).
 
 **Step 2.** Download this repo -> unzip it -> keep it in the main project folder.
 
