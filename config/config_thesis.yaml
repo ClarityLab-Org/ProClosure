@@ -1,0 +1,109 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# MASt3R-SLAM -> BEV -> room segmentation -> object-to-room assignment
+#
+# Stage 1  01_pipeline.py        video -> SLAM cloud, SAM3 objects, wall cloud
+# Stage 2  02_room_detection.py  wall cloud + camera poses -> rooms -> objects
+# ─────────────────────────────────────────────────────────────────────────────
+
+mast3r_args:
+    dataset: "testing_video5.mp4"
+    config: "config/eval_no_calib.yaml"
+    save_as: "default"
+    no_viz: true
+    calib: ""                    # uncalibrated -> the reconstruction is
+                                 # scale-ambiguous, so every height setting
+                                 # below is a FRACTION, never metres
+
+logs_dir: "logs_testing_video5"
+output_dir: "./logs_testing_video5"
+
+# BEV orientation for FIGURES only: none | lr | ud | rot180.
+# The raster, the cloud and the calibration are never reoriented, so pixel
+# coordinates in room_metadata.json stay valid and invertible.
+bev_display_flip: "lr"
+
+# --- VLM / scene-graph naming (stage 3) ---
+project_id: "zippy-shift-440710-a5"
+model_name: "gemini-3-flash-preview"
+
+# --- inputs (written by 01_pipeline.py) ---
+wall_ply_path: "./logs_testing_video5/testing_video5_wall.ply"
+full_ply_path: "./logs_testing_video5/testing_video5_full.ply"
+camera_poses_path: "./logs_testing_video5/testing_video5.txt"
+# not read by 02_room_detection.py -- phase C needs the live ObjectMap, because
+# per-object voxels are what the surface-majority vote uses and this file only
+# stores centroids and OBBs
+thumbnails_metadata_path: "./logs_testing_video5/thumbnails_metadata.json"
+
+sam3_labels:
+    - bag
+    - television
+    - remote
+    - table
+    - bed
+    - laptop
+    - toothbrush
+    - wall
+    - room door
+    - window
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PHASE A — cloud alignment -> BEV wall image + calibration
+# ─────────────────────────────────────────────────────────────────────────────
+phase_a:
+    voxel_size: 0.05
+    normal_radius: 0.15
+    wall_band: [0.25, 0.75]      # vertical quantile band for Manhattan normals
+    resolution: 512              # 0.059 units/px here, matching the 0.05 m/px
+    bev_yaw_deg: 180             # extra rotation about the up axis, folded into
+                                 # R_total so the cloud, camera poses, objects
+                                 # and the pixel<->world calibration all turn
+                                 # together. Manhattan alignment fixes the wall
+                                 # direction but not which of the four 90 deg
+                                 # orientations you view it from. 0|90|180|270.
+                                 # every phase_b value was validated at on HM3D
+
+    # height cut: bw_topdown_map cuts at the mid-height of the wall cloud and
+    # keeps y >= y_mid. Not configurable -- it is hard-coded in Phase A.
+
+    # denoise: area filter only. A morphological opening erodes 1-2 px wall
+    # lines away at this resolution (5146 -> 4368 px, 4 -> 7 components).
+    morph_kernel: 0              # 0 disables the opening
+    min_component_area: 10       # px; 50 was tuned for resolution 1024
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PHASE B — camera-pose seeded room segmentation
+# Values validated on 10 HM3D floors. Deterministic: the seeds are the camera
+# poses, so there is no rng and no seed to report variance over.
+# ─────────────────────────────────────────────────────────────────────────────
+phase_b:
+    pose_stride: 1               # keep every Nth camera pose
+    min_sep: 5                   # px, seed-to-seed spacing
+    clearance: 5                 # px, free radius a seed needs
+    dilate_px: 2                 # wall growth per iteration
+    max_iters: 600
+    move_cap: 400                # max relocation path length
+    outlier_k: 2.0               # travel-outlier cutoff, mean + k*std
+    outlier_min_n: 4
+    n_corners: 50                # rays cast per seed
+    ray_len: 150                 # px
+    label_mode: rays             # pixel labelling: rays | frozen | seeds
+    interior_erode_px: 6         # shrink the footprint before using it as the
+                                 # fill boundary, or the fill leaks outside
+    min_room_px: 40              # drop rooms smaller than this
+    max_noise_area: 200          # wall denoise inside phase B
+    isolation_px: 15
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PHASE C — object to room
+# Surface majority: each object takes the room most of its own voxels fall in.
+# No parameters. Beat visibility voting on HM3D (ARI 0.668 vs 0.640).
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PHASE D — spatial predicates (stage 3)
+# ─────────────────────────────────────────────────────────────────────────────
+phase_d:
+    distance_thresh: 1.0         # m, pairs within this go to the VLM
+    max_frames_per_room: 5
+    vlm_model: "qwen2.5-vl-3b"   # qwen2.5-vl-3b | qwen2.5-vl-7b | smolvlm-2b
