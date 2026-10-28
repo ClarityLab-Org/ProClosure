@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+message: "If you use this code or the method, please cite the paper below."
+title: "ProClosure: Hierarchical Room-Object Assignment using Progressive Boundary Closure from Monocular Video"
+authors:
+  - family-names: Muthuraj
+    given-names: Vinoth Kumar
+  - family-names: Banik
+    given-names: Soumyadeep
+  - family-names: Sharma
+    given-names: Kushal
+  - family-names: Jain
+    given-names: Hardik
+repository-code: "https://github.com/ClarityLab-Org/ProClosure"
+license: CC-BY-NC-SA-4.0
+date-released: 2026-09-01
+keywords:
+  - 3D scene graphs
+  - room segmentation
+  - monocular video
+preferred-citation:
+  type: article
+  title: "ProClosure: Hierarchical Room-Object Assignment using Progressive Boundary Closure from Monocular Video"
+  authors:
+    - family-names: Muthuraj
+      given-names: Vinoth Kumar
+    - family-names: Banik
+      given-names: Soumyadeep
+    - family-names: Sharma
+      given-names: Kushal
+    - family-names: Jain
+      given-names: Hardik
+  journal: "arXiv preprint arXiv:2609.12614"
+  year: 2026
+  url: "https://arxiv.org/abs/2609.12614"
+  identifiers:
+    - type: doi
+      value: 10.48550/arXiv.2609.12614
+      description: arXiv DOI
