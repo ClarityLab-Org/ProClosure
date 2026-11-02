@@ -2,7 +2,7 @@
 
 # ProClosure: Hierarchical Room-Object Assignment using Progressive Boundary Closure from Monocular Video
 
-**ICVGIP 2026**
+**Indian Conference on Computer Vision, Graphics, and Image Processing (ICVGIP 2026)**
 
 Vinoth Kumar Muthuraj, Soumyadeep Banik, Kushal Sharma, Hardik Jain<br>
 [CLARITY Lab](https://home.iitj.ac.in/~hardikjain/ClarityLab.html), IIT Jodhpur
