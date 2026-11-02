@@ -249,9 +249,6 @@ or the method in your research, please cite:
 }
 ```
 
-The ICVGIP 2026 proceedings entry will replace this one after publication. GitHub's
-"Cite this repository" uses [`CITATION.cff`](CITATION.cff).
-
 ## Acknowledgements
 
 The pipeline builds on [MASt3R-SLAM](https://github.com/rmurai0610/MASt3R-SLAM) (with
